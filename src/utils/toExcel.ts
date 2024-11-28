@@ -1,0 +1,446 @@
+﻿import * as Excel from "exceljs";
+import { findParentWithDisplayNone } from "./findParentWithDisplayNone";
+import { getBase64FromImage } from "./getBase64FromImage";
+import { generateCellValue } from "./generateCellValue";
+import { getExcelStyle } from "./getExcelStyle";
+import { convertPixelsToPoints } from "./convertPixelToPoint";
+import { identifyNumberFormat } from "./identifyNumberFormat";
+import { isTimeFormat } from "./isTimeFormat";
+
+//=========
+//  V 0.1.0
+//=========
+
+export async function toExcel(
+    doc: Document | null,
+    contentIds: string | string[],
+    fileName: string | string[],
+    rtl = true,
+    sheetNames = [],
+    rightHand = false
+) {
+  if (!doc) return;
+  contentIds = Array.isArray(contentIds) ? contentIds : [contentIds];
+
+  const workbook = new Excel.Workbook();
+  workbook.creator = "SanPad";
+  workbook.lastModifiedBy = "SanPad";
+  workbook.created = new Date();
+  workbook.modified = new Date();
+  workbook.lastPrinted = new Date();
+  workbook.calcProperties.fullCalcOnLoad = true;
+
+  //========================================== Header
+
+  let TableReader = async function (Table: HTMLElement | null, sheet: any) {
+    if (Table == null) return;
+    const tables = Table.querySelectorAll("* > table");
+    let tableEl: HTMLTableElement | null = Table.querySelector("table");
+
+    for (let i = 0; i < tables.length; i++) {
+      tableEl = tables[i] as HTMLTableElement;
+      let hiddenParent = findParentWithDisplayNone(Table);
+      if (hiddenParent != null) {
+        hiddenParent.style = "display:initial !important";
+      }
+      let header: any = tableEl.querySelector(`thead`);
+      let body: any = tableEl.querySelector(`tbody`);
+
+      if (header ?? false) {
+        for (let rIndex = 0; rIndex < header.rows.length; rIndex++) {
+          // let CellString = "A";
+          let CellNumber = 1;
+
+          let tr = header.rows.item(rIndex);
+          let row = sheet.getRow(RowNumber);
+          let cells = [...tr.cells];
+
+          if (rightHand == true) {
+            cells.reverse();
+          }
+
+          for (let cIndex = 0; cIndex < cells.length; cIndex++) {
+            let th = cells[cIndex];
+            if (th.firstElementChild instanceof HTMLTableElement) {
+              let TempRow = RowNumber;
+              TableReader(th.firstElementChild, sheet);
+              RowNumber = TempRow;
+            } else {
+              let temp = th.cloneNode(true);
+              temp.innerHTML = th.innerHTML.replaceAll("<br>", "\n");
+              //====== پیدا کردن سلول خالی و مرج نشده برای پر کردن
+              while (
+                  row.getCell(CellNumber).isMerged ||
+                  ![undefined, null].includes(row.getCell(CellNumber).value)
+                  ) {
+                CellNumber++;
+              }
+
+              //====== پر کر سلول
+              if (th.querySelector("img") ?? false) {
+                // === حاوی عکس بود
+                th.querySelectorAll("img").forEach(function (
+                    img: HTMLImageElement,
+                    imgIndex: number
+                ) {
+                  let imageId = workbook.addImage({
+                    base64: getBase64FromImage(img),
+                    extension: "jpeg",
+                  });
+
+                  sheet.addImage(imageId, {
+                    tl: { col: CellNumber + imgIndex - 1, row: RowNumber - 1 },
+
+                    ext: { width: img.clientWidth, height: img.clientHeight },
+                  });
+                });
+              } else {
+                // متن بود
+                console.log(generateCellValue(temp));
+                row.getCell(CellNumber).value = generateCellValue(temp);
+              }
+
+              let Style = getExcelStyle(th, rightHand);
+              Style.font.name = "B Titr";
+              row.getCell(CellNumber).style = getExcelStyle(th, rightHand); // استایل دهی به سلول
+              //===== رعایت مرج شدن
+              let rowspan = null;
+              let colspan = null;
+              if (
+                  th.colSpan != undefined &&
+                  !isNaN(th.colSpan) &&
+                  Number(th.colSpan) != 1
+              ) {
+                colspan = Number(th.colSpan);
+              }
+              if (
+                  th.rowSpan != undefined &&
+                  !isNaN(th.rowSpan) &&
+                  Number(th.rowSpan) != 1
+              ) {
+                rowspan = Number(th.rowSpan);
+              }
+
+              if (rowspan != null && colspan != null) {
+                sheet.mergeCells(
+                    RowNumber,
+                    CellNumber,
+                    RowNumber + rowspan - 1,
+                    CellNumber + colspan - 1
+                );
+
+                CellNumber = CellNumber + colspan;
+                //CellString = numberToOrderedStr(CellNumber);
+              } else if (colspan != null) {
+                sheet.mergeCells(
+                    RowNumber,
+                    CellNumber,
+                    RowNumber,
+                    CellNumber + colspan - 1
+                );
+                CellNumber = CellNumber + colspan;
+                //CellString = numberToOrderedStr(CellNumber);
+              } else if (rowspan != null) {
+                sheet.mergeCells(
+                    RowNumber,
+                    CellNumber,
+                    RowNumber + rowspan - 1,
+                    CellNumber
+                );
+
+                CellNumber = CellNumber;
+                //CellString = numberToOrderedStr(CellNumber);
+              }
+
+              //======= تنظیم ارتفاع
+
+              let heightPerRow = convertPixelsToPoints(
+                  Number(th.clientHeight) / (rowspan ?? 1)
+              );
+              for (
+                  let rnumber = RowNumber;
+                  rnumber < RowNumber + (rowspan ?? 1);
+                  rnumber++
+              ) {
+                let row = sheet.getRow(rnumber);
+                if (row.height == undefined) row.height = heightPerRow;
+                else
+                  row.height =
+                      heightPerRow > row.height ? heightPerRow : row.height;
+              }
+
+              let maxlength = 0;
+              for (let str of temp.innerText.split("\n"))
+                maxlength =
+                    str.trim().length > maxlength ? str.trim().length : maxlength;
+
+              let widthPerColumn = maxlength / (colspan ?? 1);
+
+              for (
+                  let cnumber = CellNumber;
+                  cnumber < CellNumber + (colspan ?? 1);
+                  cnumber++
+              ) {
+                let col = sheet.getColumn(cnumber);
+                if (col.width == undefined && (widthPerColumn + 4) * 1.2 > 8.4)
+                  col.width = (widthPerColumn + 4) * 1.2;
+                else
+                  col.width =
+                      (widthPerColumn + 4) * 1.2 > col.width
+                          ? (widthPerColumn + 4) * 1.2
+                          : col.width;
+              }
+            }
+          }
+          if (
+              tr.getAttribute("rowspan") != null &&
+              tr.getAttribute("rowspan") != "1"
+          ) {
+            // console.log(tr);
+            let rowspan = Number(tr.getAttribute("rowspan"));
+            row.eachCell(function (_: any, colNumber: number) {
+              // console.log(colNumber);
+              if (!row.getCell(colNumber).isMerged)
+                try {
+                  sheet.mergeCells(
+                      RowNumber,
+                      colNumber,
+                      RowNumber + rowspan - 1,
+                      colNumber
+                  );
+                } catch (e) {
+                  console.error(e);
+                }
+            });
+
+            RowNumber += rowspan - 1;
+          }
+
+          RowNumber++;
+        }
+      }
+
+      if (body ?? false) {
+        for (let rIndex = 0; rIndex < body.rows.length; rIndex++) {
+          let CellNumber = 1;
+
+          let tr = body.rows.item(rIndex);
+          let row = sheet.getRow(RowNumber);
+          let cells = [...tr.cells];
+
+          if (rightHand == true) {
+            cells.reverse();
+          }
+
+          for (let cIndex = 0; cIndex < cells.length; cIndex++) {
+            let th = cells[cIndex];
+            if (th.firstElementChild instanceof HTMLTableElement) {
+              let TempRow = RowNumber;
+              await TableReader(th.firstElementChild, sheet);
+              RowNumber = TempRow;
+            } else {
+              let temp = th.cloneNode(true);
+              temp.innerHTML = th.innerHTML.replaceAll("<br>", "\n");
+              while (
+                  row.getCell(CellNumber).isMerged ||
+                  ![undefined, null].includes(row.getCell(CellNumber).value)
+                  ) {
+                CellNumber++;
+              }
+
+              if (isNaN(Number(temp.innerText)) || th.innerText == "") {
+                console.log(generateCellValue(temp));
+
+                row.getCell(CellNumber).value = generateCellValue(temp);
+                //
+                let style = getExcelStyle(th, rightHand);
+                //style.font.name = "Times New Roman";
+                //style.font = {};
+                row.getCell(CellNumber).style = style;
+              } else {
+                let style = getExcelStyle(th, rightHand);
+                style.font.name = "Times New Roman";
+                row.getCell(CellNumber).style = style;
+                row.getCell(CellNumber).value = Number(th.innerText);
+                row.getCell(CellNumber).numFmt = identifyNumberFormat(
+                    th.innerText.trim()
+                );
+              }
+
+              if (isTimeFormat("")) {
+                row.getCell(CellNumber).style.font.name = "Times New Roman";
+              }
+
+              let rowspan = null;
+              let colspan = null;
+              if (
+                  th.colSpan != undefined &&
+                  !isNaN(th.colSpan) &&
+                  Number(th.colSpan) != 1
+              ) {
+                colspan = Number(th.colSpan);
+              }
+              if (
+                  th.rowSpan != undefined &&
+                  !isNaN(th.rowSpan) &&
+                  Number(th.rowSpan) != 1
+              ) {
+                rowspan = Number(th.rowSpan);
+              }
+
+              if (rowspan != null && colspan != null) {
+                sheet.mergeCells(
+                    RowNumber,
+                    CellNumber,
+                    RowNumber + rowspan - 1,
+                    CellNumber + colspan - 1
+                );
+                CellNumber = CellNumber + colspan;
+                // CellString = numberToOrderedStr(CellNumber);
+              } else if (colspan != null) {
+                sheet.mergeCells(
+                    RowNumber,
+                    CellNumber,
+                    RowNumber,
+                    CellNumber + colspan - 1
+                );
+                CellNumber = CellNumber + colspan;
+                // CellString = numberToOrderedStr(CellNumber);
+              } else if (rowspan != null) {
+                sheet.mergeCells(
+                    RowNumber,
+                    CellNumber,
+                    RowNumber + rowspan - 1,
+                    CellNumber
+                );
+                CellNumber = CellNumber;
+                //CellString = numberToOrderedStr(CellNumber);
+              }
+
+              let heightPerRow = convertPixelsToPoints(
+                  Number(th.clientHeight) / (rowspan ?? 1)
+              );
+              for (
+                  let rnumber = RowNumber;
+                  rnumber < RowNumber + (rowspan ?? 1);
+                  rnumber++
+              ) {
+                let row = sheet.getRow(rnumber);
+                if (row.height == undefined) row.height = heightPerRow;
+                else
+                  row.height =
+                      heightPerRow > row.height ? heightPerRow : row.height;
+              }
+
+              let maxlength = 0;
+              for (let str of temp.innerText.split("\n"))
+                maxlength =
+                    str.trim().length > maxlength ? str.trim().length : maxlength;
+
+              let widthPerColumn = maxlength / (colspan ?? 1);
+
+              for (
+                  let cnumber = CellNumber;
+                  cnumber < CellNumber + (colspan ?? 1);
+                  cnumber++
+              ) {
+                let col = sheet.getColumn(cnumber);
+                if (col.width == undefined && (widthPerColumn + 4) * 1.2 > 8.4)
+                  col.width = (widthPerColumn + 4) * 1.2;
+                else
+                  col.width =
+                      (widthPerColumn + 4) * 1.2 > col.width
+                          ? (widthPerColumn + 4) * 1.2
+                          : col.width;
+              }
+
+              //if (fileName.startsWith('Pile')) {
+
+              //    if (maxlength > 9) {
+              //        if (sheet.getColumn(CellNumber).width == undefined)
+              //            sheet.getColumn(CellNumber).width = maxlength + 8;
+              //        else
+              //            sheet.getColumn(CellNumber).width = (maxlength + 8 > sheet.getColumn(CellNumber).width) ? maxlength + 8 : sheet.getColumn(CellNumber).width;
+              //    }
+              //}
+            }
+          }
+          if (
+              tr.getAttribute("rowspan") != null &&
+              tr.getAttribute("rowspan") != "1"
+          ) {
+            //                    console.log(tr);
+            let rowspan = Number(tr.getAttribute("rowspan"));
+            row.eachCell(function (_: any, colNumber: number) {
+              //console.log(colNumber);
+              if (!row.getCell(colNumber).isMerged)
+                if (!row.getCell(colNumber).isMerged)
+                  try {
+                    sheet.mergeCells(
+                        RowNumber,
+                        colNumber,
+                        RowNumber + rowspan - 1,
+                        colNumber
+                    );
+                  } catch (e) {
+                    console.error(e);
+                  }
+            });
+
+            RowNumber += rowspan - 1;
+          }
+          RowNumber++;
+        }
+      }
+
+      if (hiddenParent != null) {
+        hiddenParent.style = "";
+      }
+    }
+  };
+
+  let i = -1;
+  for (let contentId of contentIds) {
+    i++;
+    var RowNumber = 1;
+    const sheet = workbook.addWorksheet(sheetNames[i] || "Sheet " + (i + 1));
+
+    sheet.views = [{ rightToLeft: rtl }];
+
+    await TableReader(doc.getElementById(contentId), sheet);
+  }
+  //==========================================
+
+  // const options = {
+  //   base64: true,
+  // };
+  // Save the workbook as a Buffer
+  try {
+    console.log(workbook);
+
+    const res = await workbook.xlsx.writeBuffer();
+    console.log(res);
+    const blob = new Blob([res], {
+      type: "application/vnd.openxmlformats-officedoc.spreadsheetml.sheet",
+    });
+
+    // Create a download link
+    const a = window.document.createElement("a");
+    const url = URL.createObjectURL(blob);
+
+    // Set the download link attributes
+    a.href = url;
+    a.download = fileName + ".xlsx";
+    console.log(fileName);
+
+    // Append the link to the doc body and trigger the download
+    window.document.body.appendChild(a);
+    a.click();
+    console.log(215);
+
+    // Clean up by revoking the object URL
+    window.URL.revokeObjectURL(url);
+  } catch (e) {
+    console.error("Error generating XLSX:", e);
+  }
+}

@@ -1,0 +1,2 @@
+
+export type useReactToExcelHookContent = () => any;
