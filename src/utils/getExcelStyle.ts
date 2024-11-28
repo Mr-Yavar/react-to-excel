@@ -17,7 +17,7 @@ export function getExcelStyle(tdElement: any, rightHand: boolean) {
 
   //if (fontName != 'B Titr')
 
-  fontName = fontName.toLowerCase() == "irnazanin" ? "B Nazanin" : fontName;
+
   //IRNazanin
   // Extract relevant properties from computed styles
   style.font = {
@@ -48,7 +48,7 @@ export function getExcelStyle(tdElement: any, rightHand: boolean) {
 
   let element = tdElement;
   let bgcolor = rbg_rgbaToARGB(computedStyles.backgroundColor);
-
+  console.log(bgcolor);
   while (bgcolor[0] == "0" && bgcolor[1] == "0") {
     element = element.parentElement;
     if (element == null) break;
