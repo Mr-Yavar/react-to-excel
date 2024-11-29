@@ -5,6 +5,7 @@ import { generateCellValue } from "./generateCellValue";
 import { getExcelStyle } from "./getExcelStyle";
 import { convertPixelsToPoints } from "./convertPixelToPoint";
 import { identifyNumberFormat } from "./identifyNumberFormat";
+import {useReactToExcelOptions} from "../types/UseReactToExcelOptions";
 
 
 //=========
@@ -12,23 +13,25 @@ import { identifyNumberFormat } from "./identifyNumberFormat";
 //=========
 
 export async function toExcel(
-    doc: Document | null,
-    contentIds: string | string[],
-    fileName: string | string[],
-    rtl = true,
-    sheetNames = [],
+    workbook : Excel.Workbook,
+    options : useReactToExcelOptions,
     rightHand = false
 ) {
-  if (!doc) return;
 
-  const workbook = initializeWorkbook();
-  contentIds = Array.isArray(contentIds) ? contentIds : [contentIds];
+  const {sheetOptions , contentRef} = options;
 
-  for (let i = 0; i < contentIds.length; i++) {
-    const sheet = workbook.addWorksheet(sheetNames[i] || `Sheet ${i + 1}`);
-    sheet.views = [{ rightToLeft: rtl }];
 
-   const tables =  doc.querySelectorAll(`#${contentIds[i]} > table`);
+
+  for (let i = 0; i < contentRef.length; i++) {
+    const content = contentRef[i].current;
+
+    if(!content)
+      continue;
+
+    const sheet = workbook.addWorksheet(sheetOptions[i]?.title || `Sheet ${i + 1}`);
+    sheet.views = [{ rightToLeft: sheetOptions[i].isRTL }];
+
+   const tables =  content.querySelectorAll(`* > table`);
 
    for (let j = 0; j < tables.length; j++) {
      const table = tables[j];
@@ -38,20 +41,10 @@ export async function toExcel(
 
   }
 
-  await saveWorkbook(workbook, fileName);
+
 }
 
-// Initializes the Excel workbook with metadata
-function initializeWorkbook() {
-  const workbook = new Excel.Workbook();
-  workbook.creator = "SanPad";
-  workbook.lastModifiedBy = "SanPad";
-  workbook.created = new Date();
-  workbook.modified = new Date();
-  workbook.lastPrinted = new Date();
-  workbook.calcProperties.fullCalcOnLoad = true;
-  return workbook;
-}
+
 
 // Processes the HTML table and populates the Excel sheet
 async function processTable(table: HTMLElement | null,workbook:any, sheet: any, rightHand: boolean) {
@@ -71,7 +64,7 @@ async function processHeader(table: HTMLElement,workbook:any, sheet: any, rightH
   const header = table.querySelector("thead");
   if (!header) return;
 
-  let rowNumber = 1;
+  let rowNumber = sheet.rowCount +1;
   for (const row of header.rows) {
     await processRow(row, workbook,sheet, rowNumber, rightHand);
     rowNumber++;
@@ -84,9 +77,14 @@ async function processBody(table: HTMLElement,workbook:any, sheet: any, rightHan
   if (!body) return;
 
   let rowNumber = sheet.rowCount + 1; // Start after header
+
+
+
   for (const row of body.rows) {
+
+
     await processRow(row, workbook,sheet, rowNumber, rightHand);
-    rowNumber++;
+    rowNumber=sheet.rowCount + 1;
   }
 }
 
@@ -97,6 +95,7 @@ async function processRow(row: HTMLTableRowElement,workbook:any, sheet: any, row
   const cells = rightHand ? [...row.cells].reverse() : [...row.cells];
   for (const cell of cells) {
     await processCell(cell, workbook,sheet, rowNumber, cellNumber,rightHand);
+    mergeCells(sheet,rowNumber,cellNumber,getRowSpan(cell),getColSpan(cell));
     cellNumber += getColSpan(cell);
   }
 }
@@ -161,25 +160,7 @@ function adjustColumnWidth(sheet: any, row: any, cell: HTMLTableCellElement, cel
   col.width = Math.max(col.width || 0, (maxLength + 4) * 1.2);
 }
 
-// Saves the workbook to a file
-async function saveWorkbook(workbook: any, fileName: string | string[]) {
-  try {
-    const buffer = await workbook.xlsx.writeBuffer();
-    const blob = new Blob([buffer], {
-      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    });
 
-    const a = document.createElement("a");
-    const url = URL.createObjectURL(blob);
-    a.href = url;
-    a.download = `${fileName}.xlsx`;
-    document.body.appendChild(a);
-    a.click();
-    URL.revokeObjectURL(url);
-  } catch (error) {
-    console.error("Error generating XLSX:", error);
-  }
-}
 
 // Returns the colspan of a cell
 function getColSpan(cell: HTMLTableCellElement): number {
@@ -192,8 +173,37 @@ function getRowSpan(cell: HTMLTableCellElement): number {
 }
 
 // Merges cells based on rowspan and colspan
-function mergeCells(sheet: any, rowNumber: number, cellNumber: number, rowspan: number, colspan: number) {
-  sheet.mergeCells(rowNumber, cellNumber, rowNumber + rowspan - 1, cellNumber + colspan - 1);
+// function mergeCells(sheet: any, rowNumber: number, cellNumber: number, rowspan: number, colspan: number) {
+//   sheet.mergeCells(rowNumber, cellNumber, rowNumber + rowspan - 1, cellNumber + colspan - 1);
+// }
+// Merges cells based on rowspan and colspan
+function mergeCells(sheet: Excel.Worksheet, rowNumber: number, cellNumber: number, rowspan: number, colspan: number) {
+  // Quick early exit conditions
+  if (rowspan <= 1 && colspan <= 1) return;
+
+  try {
+    // Validate merge range
+    if (rowNumber < 1 || cellNumber < 1) {
+      console.warn('Invalid merge range');
+      return;
+    }
+
+    // Perform merge with error handling
+    sheet.mergeCells(
+        rowNumber,
+        cellNumber,
+        rowNumber + rowspan - 1,
+        cellNumber + colspan - 1
+    );
+  } catch (error) {
+    console.error('Merge cell error:', {
+      rowNumber,
+      cellNumber,
+      rowspan,
+      colspan,
+      error
+    });
+  }
 }
 
 // Identifies and applies number formatting to cells

@@ -8,13 +8,17 @@ import {useReactToExcel} from "../src"; // Adjust the path as needed
 const App: React.FC = () => {
     const t = useRef(null);
     const excel1 = useReactToExcel({
-        documentTitle : "ttt",
-        contentRef : t
+        documentTitle : "file",
+        contentRef : [t],
+        sheetOptions :[{
+            title :"report",
+            isRTL:true
+        }]
     });
 
 
     return (
-        <div>
+        <div style={{background:"white"}}>
             <button type={"button"} onClick={()=>excel1()}>xlsx</button>
             <SampleTable ref={t} />
 

@@ -10,6 +10,6 @@ export function rbg_rgbaToARGB(colorString: string): string {
   } else if (isRGBA) {
     return rgbaToArgbHex(colorString);
   } else {
-    return "ffffff";
+    return "0000000";
   }
 }

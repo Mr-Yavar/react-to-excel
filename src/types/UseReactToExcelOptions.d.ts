@@ -1,5 +1,6 @@
 import { RefObject } from "react";
 import type { Font } from "./font";
+import {SheetOption} from "./SheetOption.ts";
 
 /** Options for `useReactToExcel` */
 export interface useReactToExcelOptions {
@@ -9,9 +10,13 @@ export interface useReactToExcelOptions {
    * The ref pointing to the content to be printed. Alternatively, pass the ref directly to the
    * callback returned by `useReactToExcel`
    */
-  contentRef?: RefObject<Element | Text>;
+  contentRef:  RefObject<Element>[];
   /** Set the title for printing when saving as a file. Ignored when passing a custom `print` option */
   documentTitle?: string;
+  sheetOptions: SheetOption[];
+
+  author?:string;
+
   /** A list of fonts to load into the printing iframe. This is useful if you are using custom fonts */
   fonts?: Font[];
   /** Ignore all `<style>` and `<link type="stylesheet" />` tags from `<head>` */
