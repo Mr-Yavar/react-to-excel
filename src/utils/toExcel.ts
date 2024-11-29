@@ -5,221 +5,258 @@ import { generateCellValue } from "./generateCellValue";
 import { getExcelStyle } from "./getExcelStyle";
 import { convertPixelsToPoints } from "./convertPixelToPoint";
 import { identifyNumberFormat } from "./identifyNumberFormat";
-import {useReactToExcelOptions} from "../types/UseReactToExcelOptions";
-
+import { useReactToExcelOptions } from "../types/UseReactToExcelOptions";
 
 //=========
 //  V 0.1.0
 //=========
 
 export async function toExcel(
-    workbook : Excel.Workbook,
-    options : useReactToExcelOptions,
-    rightHand = false
+  workbook: Excel.Workbook,
+  options: useReactToExcelOptions,
+  rightHand = false
 ) {
-
-  const {sheetOptions , contentRef} = options;
-
-
+  const { sheetOptions, contentRef } = options;
 
   for (let i = 0; i < contentRef.length; i++) {
     const content = contentRef[i].current;
 
-    if(!content)
-      continue;
+    if (!content) continue;
 
-    const sheet = workbook.addWorksheet(sheetOptions[i]?.title || `Sheet ${i + 1}`);
+    const sheet = workbook.addWorksheet(
+      sheetOptions[i]?.title || `Sheet ${i + 1}`
+    );
     sheet.views = [{ rightToLeft: sheetOptions[i].isRTL }];
 
-   const tables =  content.querySelectorAll(`* > table`);
+    const tables = content.querySelectorAll(`* > table`);
 
-   for (let j = 0; j < tables.length; j++) {
-     const table = tables[j];
-     await processTable(table as HTMLElement, workbook,sheet, rightHand);
-
-   }
-
-  }
-
-
-}
-
-
-
-// Processes the HTML table and populates the Excel sheet
-async function processTable(table: HTMLElement | null,workbook:any, sheet: any, rightHand: boolean) {
-  if (!table) return;
-  console.log(table);
-  const hiddenParent = findParentWithDisplayNone(table);
-  if (hiddenParent) hiddenParent.style = "display:initial !important";
-
-  await processHeader(table,workbook, sheet, rightHand);
-  await processBody(table,workbook, sheet, rightHand);
-
-  if (hiddenParent) hiddenParent.style = "";
-}
-
-// Processes the header of the table
-async function processHeader(table: HTMLElement,workbook:any, sheet: any, rightHand: boolean) {
-  const header = table.querySelector("thead");
-  if (!header) return;
-
-  let rowNumber = sheet.rowCount +1;
-  for (const row of header.rows) {
-    await processRow(row, workbook,sheet, rowNumber, rightHand);
-    rowNumber++;
-  }
-}
-
-// Processes the body of the table
-async function processBody(table: HTMLElement,workbook:any, sheet: any, rightHand: boolean) {
-  const body = table.querySelector("tbody");
-  if (!body) return;
-
-  let rowNumber = sheet.rowCount + 1; // Start after header
-
-
-
-  for (const row of body.rows) {
-
-
-    await processRow(row, workbook,sheet, rowNumber, rightHand);
-    rowNumber=sheet.rowCount + 1;
-  }
-}
-
-// Processes a single row of the table
-async function processRow(row: HTMLTableRowElement,workbook:any, sheet: any, rowNumber: number, rightHand: boolean) {
-  let cellNumber = 1;
-
-  const cells = rightHand ? [...row.cells].reverse() : [...row.cells];
-  for (const cell of cells) {
-    await processCell(cell, workbook,sheet, rowNumber, cellNumber,rightHand);
-    mergeCells(sheet,rowNumber,cellNumber,getRowSpan(cell),getColSpan(cell));
-    cellNumber += getColSpan(cell);
-  }
-}
-
-// Processes a single cell of the table
-async function processCell(cell: HTMLTableCellElement,workbook:any, sheet: any, rowNumber: number, cellNumber: number,rightHand:boolean) {
-  const tempCell = cell.cloneNode(true);
-  tempCell.innerHTML = tempCell.innerHTML.replaceAll("<br>", "\n");
-
-  if (cell.firstElementChild instanceof HTMLTableElement) {
-    await processTable(cell.firstElementChild,workbook, sheet, rightHand);
-  } else {
-    await fillCell(workbook,sheet, rowNumber, cellNumber, tempCell, cell,rightHand);
-  }
-}
-
-// Fills the Excel cell with the appropriate value and style
-async function fillCell(workbook:any,sheet: any, rowNumber: number, cellNumber: number, tempCell: Node, cell: HTMLTableCellElement,rightHand:boolean) {
-  const row = sheet.getRow(rowNumber);
-  const cellValue = generateCellValue(tempCell);
-
-  const style = getExcelStyle(cell, rightHand);
-
-  row.getCell(cellNumber).value = cellValue;
-  row.getCell(cellNumber).style = style;
-
-  if (cell.querySelector("img")) {
-    await handleImages(cell, workbook, sheet, rowNumber, cellNumber);
-  }
-
-  adjustRowHeight(sheet, rowNumber, cell, cellNumber);
-  adjustColumnWidth(sheet, row, cell, cellNumber);
-}
-
-// Handles images within a cell
-async function handleImages(cell: HTMLTableCellElement, workbook: any, sheet: any, rowNumber: number, cellNumber: number ) {
-  const images = cell.querySelectorAll("img");
-  for (const img of images) {
-    const imageId = workbook.addImage({
-      base64: getBase64FromImage(img),
-      extension: "jpeg",
-    });
-
-    sheet.addImage(imageId, {
-      tl: { col: cellNumber - 1, row: rowNumber - 1 },
-      ext: { width: img.clientWidth, height: img.clientHeight },
-    });
-  }
-}
-
-// Adjusts the height of the row based on cell content
-function adjustRowHeight(sheet: any, rowNumber: number, cell: HTMLTableCellElement, cellNumber: number) {
-  const heightPerRow = convertPixelsToPoints(Number(cell.clientHeight));
-  const row = sheet.getRow(rowNumber);
-  row.height = Math.max(row.height || 0, heightPerRow);
-}
-
-// Adjusts the width of the column based on cell content
-function adjustColumnWidth(sheet: any, row: any, cell: HTMLTableCellElement, cellNumber: number) {
-  const maxLength = Math.max(...cell.innerText.split("\n").map(str => str.trim().length));
-  const col = sheet.getColumn(cellNumber);
-  col.width = Math.max(col.width || 0, (maxLength + 4) * 1.2);
-}
-
-
-
-// Returns the colspan of a cell
-function getColSpan(cell: HTMLTableCellElement): number {
-  return cell.colSpan ? Number(cell.colSpan) : 1;
-}
-
-// Returns the rowspan of a cell
-function getRowSpan(cell: HTMLTableCellElement): number {
-  return cell.rowSpan ? Number(cell.rowSpan) : 1;
-}
-
-// Merges cells based on rowspan and colspan
-// function mergeCells(sheet: any, rowNumber: number, cellNumber: number, rowspan: number, colspan: number) {
-//   sheet.mergeCells(rowNumber, cellNumber, rowNumber + rowspan - 1, cellNumber + colspan - 1);
-// }
-// Merges cells based on rowspan and colspan
-function mergeCells(sheet: Excel.Worksheet, rowNumber: number, cellNumber: number, rowspan: number, colspan: number) {
-  // Quick early exit conditions
-  if (rowspan <= 1 && colspan <= 1) return;
-
-  try {
-    // Validate merge range
-    if (rowNumber < 1 || cellNumber < 1) {
-      console.warn('Invalid merge range');
-      return;
+    for (let j = 0; j < tables.length; j++) {
+      const table = tables[j];
+      await TableReader(table as HTMLTableElement, sheet, workbook, rightHand);
     }
-
-    // Perform merge with error handling
-    sheet.mergeCells(
-        rowNumber,
-        cellNumber,
-        rowNumber + rowspan - 1,
-        cellNumber + colspan - 1
-    );
-  } catch (error) {
-    console.error('Merge cell error:', {
-      rowNumber,
-      cellNumber,
-      rowspan,
-      colspan,
-      error
-    });
   }
 }
 
-// Identifies and applies number formatting to cells
-function applyNumberFormatting(cell: HTMLTableCellElement, sheet: any, rowNumber: number, cellNumber: number,rightHand) {
-  const value = cell.innerText.trim();
-  if (isNaN(Number(value)) || value === "") return;
+async function TableReader(
+  Table: HTMLTableElement | null,
+  sheet: Excel.Worksheet,
+  workbook: Excel.Workbook,
+  rightHand: boolean
+) {
+  if (Table == null) return;
 
-  const style = getExcelStyle(cell, rightHand);
-  style.font.name = "Times New Roman";
-  sheet.getRow(rowNumber).getCell(cellNumber).style = style;
-  sheet.getRow(rowNumber).getCell(cellNumber).value = Number(value);
-  sheet.getRow(rowNumber).getCell(cellNumber).numFmt = identifyNumberFormat(value);
-}
+  let tableEl: HTMLTableElement | null = Table;
 
-// Checks if a cell contains a time format
-function isTimeFormat(cell: HTMLTableCellElement): boolean {
-  // Implement time format checking logic here
-  return false;
+  const hiddenParent = findParentWithDisplayNone(Table);
+  if (hiddenParent != null) {
+    hiddenParent.style.display = "initial !important"; // Corrected to use display property
+  }
+  const header: HTMLTableSectionElement | null = tableEl.querySelector(`thead`);
+  const body: HTMLTableSectionElement | null = tableEl.querySelector(`tbody`);
+
+  let RowNumber = 1; // Initialize RowNumber for each table
+
+  if (header) {
+    for (let rIndex = 0; rIndex < header.rows.length; rIndex++) {
+      let CellNumber = 1;
+
+      const tr = header.rows.item(rIndex);
+      const row = sheet.getRow(RowNumber);
+      const cells = Array.from(tr.cells);
+
+      if (rightHand) {
+        cells.reverse();
+      }
+
+      for (let cIndex = 0; cIndex < cells.length; cIndex++) {
+        const th = cells[cIndex];
+        if (th.firstElementChild instanceof HTMLTableElement) {
+          const TempRow = RowNumber;
+          await TableReader(th.firstElementChild, sheet, workbook, rightHand);
+          RowNumber = TempRow; // Restore RowNumber after processing child table
+        } else {
+          const temp = th.cloneNode(true) as HTMLElement;
+          temp.innerHTML = temp.innerHTML.replaceAll("<br>", "\n");
+
+          // Find an empty cell to fill
+          while (
+            row.getCell(CellNumber).isMerged ||
+            !!row.getCell(CellNumber).value
+          ) {
+            console.log(row.getCell(CellNumber));
+            CellNumber++;
+          }
+
+          // Handle images
+          if (th.querySelector("img")) {
+            th.querySelectorAll("img").forEach(
+              (img: HTMLImageElement, imgIndex: number) => {
+                const imageId = workbook.addImage({
+                  base64: getBase64FromImage(img),
+                  extension: "jpeg",
+                });
+
+                sheet.addImage(imageId, {
+                  tl: {
+                    col: CellNumber + imgIndex - 1,
+                    row: RowNumber - 1,
+                  },
+                  ext: { width: img.clientWidth, height: img.clientHeight },
+                });
+              }
+            );
+          } else {
+            row.getCell(CellNumber).value = generateCellValue(temp);
+          }
+
+          const style = getExcelStyle(th, rightHand);
+          style.font.name = "B Titr";
+          row.getCell(CellNumber).style = style;
+
+          // Handle rowspan and colspan
+          const colspan = th.colSpan ? Number(th.colSpan) : 1;
+          const rowspan = th.rowSpan ? Number(th.rowSpan) : 1;
+
+          if (rowspan > 1 || colspan > 1) {
+            sheet.mergeCells(
+              RowNumber,
+              CellNumber,
+              RowNumber + rowspan - 1,
+              CellNumber + colspan - 1
+            );
+          }
+
+          // Adjust row height
+          const heightPerRow = convertPixelsToPoints(
+            Number(th.clientHeight) / (rowspan || 1)
+          );
+          for (
+            let rnumber = RowNumber;
+            rnumber < RowNumber + (rowspan || 1);
+            rnumber++
+          ) {
+            const row = sheet.getRow(rnumber);
+            row.height = row.height
+              ? Math.max(row.height, heightPerRow)
+              : heightPerRow;
+          }
+
+          // Adjust column width
+          const maxlength = Math.max(
+            ...temp.innerText.split("\n").map((str) => str.trim().length)
+          );
+          const widthPerColumn = maxlength / (colspan || 1);
+
+          for (
+            let cnumber = CellNumber;
+            cnumber < CellNumber + (colspan || 1);
+            cnumber++
+          ) {
+            const col = sheet.getColumn(cnumber);
+            col.width = col.width
+              ? Math.max(col.width, (widthPerColumn + 4) * 1.2)
+              : (widthPerColumn + 4) * 1.2;
+          }
+
+          CellNumber += colspan; // Move to the next cell position
+        }
+      }
+      RowNumber++;
+    }
+  }
+  console.log(RowNumber);
+  if (body) {
+    for (let rIndex = 0; rIndex < body.rows.length; rIndex++) {
+      let CellNumber = 1;
+
+      const tr = body.rows.item(rIndex);
+      const row = sheet.getRow(RowNumber);
+      const cells = Array.from(tr.cells);
+
+      if (rightHand) {
+        cells.reverse();
+      }
+
+      for (let cIndex = 0; cIndex < cells.length; cIndex++) {
+        const th = cells[cIndex];
+        if (th.firstElementChild instanceof HTMLTableElement) {
+          const TempRow = RowNumber;
+          await TableReader(th.firstElementChild, sheet, workbook, rightHand);
+          RowNumber = TempRow;
+        } else {
+          const temp = th.cloneNode(true) as HTMLElement;
+          temp.innerHTML = temp.innerHTML.replaceAll("<br>", "\n");
+
+          while (
+            row.getCell(CellNumber).isMerged ||
+            !!row.getCell(CellNumber).value
+          ) {
+            CellNumber++;
+          }
+
+          if (isNaN(Number(temp.innerText)) || th.innerText === "") {
+            row.getCell(CellNumber).value = generateCellValue(temp);
+            row.getCell(CellNumber).style = getExcelStyle(th, rightHand);
+          } else {
+            row.getCell(CellNumber).value = Number(th.innerText);
+            row.getCell(CellNumber).numFmt = identifyNumberFormat(
+              th.innerText.trim()
+            );
+            row.getCell(CellNumber).style = {
+              font: { name: "Times New Roman" },
+            };
+          }
+
+          const colspan = th.colSpan ? Number(th.colSpan) : 1;
+          const rowspan = th.rowSpan ? Number(th.rowSpan) : 1;
+
+          if (rowspan > 1 || colspan > 1) {
+            sheet.mergeCells(
+              RowNumber,
+              CellNumber,
+              RowNumber + rowspan - 1,
+              CellNumber + colspan - 1
+            );
+          }
+
+          const heightPerRow = convertPixelsToPoints(
+            Number(th.clientHeight) / (rowspan || 1)
+          );
+          for (
+            let rnumber = RowNumber;
+            rnumber < RowNumber + (rowspan || 1);
+            rnumber++
+          ) {
+            const row = sheet.getRow(rnumber);
+            row.height = row.height
+              ? Math.max(row.height, heightPerRow)
+              : heightPerRow;
+          }
+
+          const maxlength = Math.max(
+            ...temp.innerText.split("\n").map((str) => str.trim().length)
+          );
+          const widthPerColumn = maxlength / (colspan || 1);
+
+          for (
+            let cnumber = CellNumber;
+            cnumber < CellNumber + (colspan || 1);
+            cnumber++
+          ) {
+            const col = sheet.getColumn(cnumber);
+            col.width = col.width
+              ? Math.max(col.width, (widthPerColumn + 4) * 1.2)
+              : (widthPerColumn + 4) * 1.2;
+          }
+
+          CellNumber += colspan; // Move to the next cell position
+        }
+      }
+      RowNumber++;
+    }
+  }
+
+  if (hiddenParent) {
+    hiddenParent.style.display = ""; // Reset display style
+  }
 }
