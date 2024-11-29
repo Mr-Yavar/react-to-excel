@@ -15,7 +15,9 @@ export function useReactToExcel(
 
 
   const handlePrint = useCallback(
-    async  (optionalContent?: any) => {
+    async  () => {
+
+          
 
         const workbook = await initializeWorkbook();
 

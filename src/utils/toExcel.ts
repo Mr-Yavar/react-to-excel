@@ -62,7 +62,7 @@ async function TableReader(
 
       const tr = header.rows.item(rIndex);
       const row = sheet.getRow(RowNumber);
-      const cells = Array.from(tr.cells);
+      const cells = Array.from(tr?.cells ?? []) ;
 
       if (rightHand) {
         cells.reverse();
@@ -76,7 +76,7 @@ async function TableReader(
           RowNumber = TempRow; // Restore RowNumber after processing child table
         } else {
           const temp = th.cloneNode(true) as HTMLElement;
-          temp.innerHTML = temp.innerHTML.replaceAll("<br>", "\n");
+          temp.innerHTML = temp.innerHTML.replace("<br>", "\n");
 
           // Find an empty cell to fill
           while (
@@ -171,7 +171,7 @@ async function TableReader(
 
       const tr = body.rows.item(rIndex);
       const row = sheet.getRow(RowNumber);
-      const cells = Array.from(tr.cells);
+      const cells = Array.from(tr?.cells ?? []);
 
       if (rightHand) {
         cells.reverse();
@@ -185,7 +185,7 @@ async function TableReader(
           RowNumber = TempRow;
         } else {
           const temp = th.cloneNode(true) as HTMLElement;
-          temp.innerHTML = temp.innerHTML.replaceAll("<br>", "\n");
+          temp.innerHTML = temp.innerHTML.replace("<br>", "\n");
 
           while (
             row.getCell(CellNumber).isMerged ||

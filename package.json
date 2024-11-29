@@ -2,8 +2,8 @@
   "name": "react-to-excel",
   "private": false,
 
-"description": "A simple ui library for React",
-"version": "1.0.1",
+"description": "A simple lib",
+"version": "0.0.1b",
 
 "main": "dist/index.umd.js",
 
