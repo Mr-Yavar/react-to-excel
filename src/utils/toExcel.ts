@@ -5,39 +5,39 @@ import { generateCellValue } from "./generateCellValue";
 import { getExcelStyle } from "./getExcelStyle";
 import { convertPixelsToPoints } from "./convertPixelToPoint";
 import { identifyNumberFormat } from "./identifyNumberFormat";
-import { useReactToExcelOptions } from "../types/UseReactToExcelOptions";
 
 //=========
 //  V 0.1.0
 //=========
 
-export async function toExcel(
+export function toExcel(
   workbook: Excel.Workbook,
-  options: useReactToExcelOptions,
+  content: HTMLIFrameElement | Element,
+  isRTL: boolean,
+  SheetName: string,
   rightHand = false
 ) {
-  const { sheetOptions } = options;
+  const sheet = workbook.addWorksheet(SheetName);
+  sheet.views = [{ rightToLeft: isRTL }];
 
-  for (let i = 0; i < sheetOptions.length; i++) {
-    const content = sheetOptions[i].contentRef.current;
+  let tables: NodeListOf<Element>;
 
-    if (!content) continue;
+  if (content instanceof HTMLIFrameElement) {
+    content.focus();
+    tables = content!.contentDocument!.querySelectorAll(`* > table`);
+  } else {
+    tables = content.querySelectorAll(`* > table`);
+  }
 
-    const sheet = workbook.addWorksheet(
-      sheetOptions[i]?.title || `Sheet ${i + 1}`
-    );
-    sheet.views = [{ rightToLeft: sheetOptions[i].isRTL }];
+  //console.log(tables);
 
-    const tables = content.querySelectorAll(`* > table`);
-
-    for (let j = 0; j < tables.length; j++) {
-      const table = tables[j];
-      await TableReader(table as HTMLTableElement, sheet, workbook, rightHand);
-    }
+  for (let j = 0; j < tables.length; j++) {
+    const table = tables[j];
+    TableReader(table as HTMLTableElement, sheet, workbook, rightHand);
   }
 }
 
-async function TableReader(
+function TableReader(
   Table: HTMLTableElement | null,
   sheet: Excel.Worksheet,
   workbook: Excel.Workbook,
@@ -62,7 +62,7 @@ async function TableReader(
 
       const tr = header.rows.item(rIndex);
       const row = sheet.getRow(RowNumber);
-      const cells = Array.from(tr?.cells ?? []) ;
+      const cells = Array.from(tr?.cells ?? []);
 
       if (rightHand) {
         cells.reverse();
@@ -72,7 +72,7 @@ async function TableReader(
         const th = cells[cIndex];
         if (th.firstElementChild instanceof HTMLTableElement) {
           const TempRow = RowNumber;
-          await TableReader(th.firstElementChild, sheet, workbook, rightHand);
+          TableReader(th.firstElementChild, sheet, workbook, rightHand);
           RowNumber = TempRow; // Restore RowNumber after processing child table
         } else {
           const temp = th.cloneNode(true) as HTMLElement;
@@ -83,7 +83,7 @@ async function TableReader(
             row.getCell(CellNumber).isMerged ||
             !!row.getCell(CellNumber).value
           ) {
-            console.log(row.getCell(CellNumber));
+            //console.log(row.getCell(CellNumber));
             CellNumber++;
           }
 
@@ -164,7 +164,6 @@ async function TableReader(
       RowNumber++;
     }
   }
-  console.log(RowNumber);
   if (body) {
     for (let rIndex = 0; rIndex < body.rows.length; rIndex++) {
       let CellNumber = 1;
@@ -181,7 +180,7 @@ async function TableReader(
         const th = cells[cIndex];
         if (th.firstElementChild instanceof HTMLTableElement) {
           const TempRow = RowNumber;
-          await TableReader(th.firstElementChild, sheet, workbook, rightHand);
+          TableReader(th.firstElementChild, sheet, workbook, rightHand);
           RowNumber = TempRow;
         } else {
           const temp = th.cloneNode(true) as HTMLElement;

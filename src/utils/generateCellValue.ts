@@ -10,7 +10,7 @@ export function generateCellValue(Node: any) {
   let cellValue = {
     richText: [],
   };
-  //console.log(Nodes.body.childNodes);
+  ////console.log(Nodes.body.childNodes);
   for (let item of Nodes.body.childNodes) {
     if (item.nodeType == document.TEXT_NODE) {
       let tmpRichs: any = separatePersianChars(item.data).reduce(function (

@@ -96,7 +96,7 @@ export async function toExcel(
                 });
               } else {
                 // متن بود
-                console.log(generateCellValue(temp));
+                //console.log(generateCellValue(temp));
                 row.getCell(CellNumber).value = generateCellValue(temp);
               }
 
@@ -196,10 +196,10 @@ export async function toExcel(
               tr.getAttribute("rowspan") != null &&
               tr.getAttribute("rowspan") != "1"
           ) {
-            // console.log(tr);
+            // //console.log(tr);
             let rowspan = Number(tr.getAttribute("rowspan"));
             row.eachCell(function (_: any, colNumber: number) {
-              // console.log(colNumber);
+              // //console.log(colNumber);
               if (!row.getCell(colNumber).isMerged)
                 try {
                   sheet.mergeCells(
@@ -249,7 +249,7 @@ export async function toExcel(
               }
 
               if (isNaN(Number(temp.innerText)) || th.innerText == "") {
-                console.log(generateCellValue(temp));
+                //console.log(generateCellValue(temp));
 
                 row.getCell(CellNumber).value = generateCellValue(temp);
                 //
@@ -369,10 +369,10 @@ export async function toExcel(
               tr.getAttribute("rowspan") != null &&
               tr.getAttribute("rowspan") != "1"
           ) {
-            //                    console.log(tr);
+            //                    //console.log(tr);
             let rowspan = Number(tr.getAttribute("rowspan"));
             row.eachCell(function (_: any, colNumber: number) {
-              //console.log(colNumber);
+              ////console.log(colNumber);
               if (!row.getCell(colNumber).isMerged)
                 if (!row.getCell(colNumber).isMerged)
                   try {
@@ -416,10 +416,10 @@ export async function toExcel(
   // };
   // Save the workbook as a Buffer
   try {
-    console.log(workbook);
+    //console.log(workbook);
 
     const res = await workbook.xlsx.writeBuffer();
-    console.log(res);
+    //console.log(res);
     const blob = new Blob([res], {
       type: "application/vnd.openxmlformats-officedoc.spreadsheetml.sheet",
     });
@@ -431,12 +431,12 @@ export async function toExcel(
     // Set the download link attributes
     a.href = url;
     a.download = fileName + ".xlsx";
-    console.log(fileName);
+    //console.log(fileName);
 
     // Append the link to the doc body and trigger the download
     window.document.body.appendChild(a);
     a.click();
-    console.log(215);
+    //console.log(215);
 
     // Clean up by revoking the object URL
     window.URL.revokeObjectURL(url);

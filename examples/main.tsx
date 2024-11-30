@@ -11,7 +11,7 @@ const App: React.FC = () => {
     const handleExcelBtn = useReactToExcel({
         documentTitle : "Sample",
         sheetOptions :[{
-            contentRef : componentRef,
+            htmlContent : renderToString(<SampleTable/>,{identifierPrefix:"212"}),
             title :"Sample",
             isRTL:false
         }]
@@ -21,9 +21,9 @@ const App: React.FC = () => {
     return (
         <div style={{background:"white"}}>
             <button type={"button"} onClick={()=>handleExcelBtn()}>xlsx</button>
-            <SampleTable />
+            <SampleTable ref={componentRef} />
 
-            {/* {renderToString(<SampleTable/>,{identifierPrefix:"212"})} */}
+       
         </div>
     );
 };

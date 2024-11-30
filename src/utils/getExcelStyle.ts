@@ -45,7 +45,7 @@ export function getExcelStyle(tdElement: any, rightHand: boolean) {
 
   let element = tdElement;
   let bgcolor = rbg_rgbaToARGB(computedStyles.backgroundColor);
-  console.log(bgcolor);
+  //console.log(bgcolor);
   while (bgcolor[0] == "0" && bgcolor[1] == "0") {
     element = element.parentElement;
     if (element == null) break;
