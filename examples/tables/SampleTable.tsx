@@ -1,20 +1,7 @@
 import React, {forwardRef} from 'react';
 
 // Define a type for the table data
-interface TableData {
-    id: number;
-    name: string;
-    age: number;
-    email: string;
-}
 
-// Sample data for the table
-const sampleData: TableData[] = [
-    { id: 1, name: 'John Doe', age: 28, email: 'john.doe@example.com' },
-    { id: 2, name: 'Jane Smith', age: 34, email: 'jane.smith@example.com' },
-    { id: 3, name: 'Alice Johnson', age: 29, email: 'alice.johnson@example.com' },
-    { id: 4, name: 'Bob Brown', age: 42, email: 'bob.brown@example.com' },
-];
 
 const SampleTable: React.FC = forwardRef( (props, ref) => {
     return (

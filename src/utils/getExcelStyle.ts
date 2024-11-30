@@ -15,10 +15,7 @@ export function getExcelStyle(tdElement: any, rightHand: boolean) {
     .replace('"', "")
     .replace("'", "");
 
-  //if (fontName != 'B Titr')
 
-
-  //IRNazanin
   // Extract relevant properties from computed styles
   style.font = {
     bold:
@@ -142,6 +139,5 @@ export function getExcelStyle(tdElement: any, rightHand: boolean) {
       },
     };
   }
-  //console.log(style)
   return style;
 }

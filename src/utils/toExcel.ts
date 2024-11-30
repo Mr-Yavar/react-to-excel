@@ -16,10 +16,10 @@ export async function toExcel(
   options: useReactToExcelOptions,
   rightHand = false
 ) {
-  const { sheetOptions, contentRef } = options;
+  const { sheetOptions } = options;
 
-  for (let i = 0; i < contentRef.length; i++) {
-    const content = contentRef[i].current;
+  for (let i = 0; i < sheetOptions.length; i++) {
+    const content = sheetOptions[i].contentRef.current;
 
     if (!content) continue;
 

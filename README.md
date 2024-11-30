@@ -1,50 +1,82 @@
-# React + TypeScript + Vite
+# React to Excel
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
-
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
-
-- Configure the top-level `parserOptions` property like this:
-
+### How to use :
 ```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+const SampleTable: React.FC = () => {
+    const contentRef = useRef(null);
+
+    const handleExcelBtn = useReactToExcel({
+        documentTitle : "Sample",
+        sheetOptions :[{
+            contentRef : contentRef,
+            title :"Sample",
+            isRTL:false
+        }]
+    });
+
+    return (
+        <>
+            <button type={"button"} onClick={()=>handleExcelBtn()}>to .xlsx</button>
+            <div ref={contentRef} className="table" id={"content"}>
+
+                <table border={1}>
+                    <thead>
+                        <tr>
+                            <th rowSpan={3}>Day</th>
+                            <th colSpan={3}>Seminar</th>
+                        </tr>
+                        <tr >
+                            <th colSpan={2}>Schedule</th>
+                            <th rowSpan={2}>Topic</th>
+                        </tr>
+                        <tr>
+                            <th>Begin</th>
+                            <th>End</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowSpan={2}>Monday</td>
+                            <td rowSpan={2}>8:00 a.m</td>
+                            <td rowSpan={2}>5:00 p.m</td>
+                            <td>Introduction to XML</td>
+                        </tr>
+                        <tr>
+                            <td>Validity: DTD and Relax NG</td>
+                        </tr>
+                        <tr>
+                            <td rowSpan={4}>Tuesday</td>
+                            <td>8:00 a.m</td>
+                            <td>11:00 a.m</td>
+                            <td rowSpan={2}>XPath</td>
+                        </tr>
+                        <tr>
+                            <td rowSpan={2}>11:00 a.m</td>
+                            <td rowSpan={2}>2:00 p.m</td>
+                        </tr>
+                        <tr>
+                            <td rowSpan={2}>XSL transformation</td>
+                        </tr>
+                        <tr>
+                            <td>2:00 p.m</td>
+                            <td>5:00 p.m</td>
+                        </tr>
+                        <tr>
+                            <td>Wednesday</td>
+                            <td>8:00 a.m</td>
+                            <td>12:00 p.m</td>
+                            <td>XLS Formatting Objects</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </>
+    );
+}
 ```
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+### Based on: 
++ [react-to-print](https://github.com/MatthewHerbst/react-to-print)
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
-
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
-```
+### Powered by:
++ [exceljs](https://github.com/exceljs/exceljs.git)

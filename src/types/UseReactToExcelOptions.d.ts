@@ -6,12 +6,9 @@ import {SheetOption} from "./SheetOption.ts";
 export interface useReactToExcelOptions {
   /** One or more class names to pass to the print window, separated by spaces */
   bodyClass?: string;
-  /**
-   * The ref pointing to the content to be printed. Alternatively, pass the ref directly to the
-   * callback returned by `useReactToExcel`
-   */
-  contentRef:  RefObject<Element>[];
-  /** Set the title for printing when saving as a file. Ignored when passing a custom `print` option */
+
+
+
   documentTitle?: string;
   sheetOptions: SheetOption[];
 

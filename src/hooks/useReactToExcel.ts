@@ -14,12 +14,12 @@ export function useReactToExcel(
 ): useReactToExcelFn {
 
 
-  const handlePrint = useCallback(
+  const handleExcel = useCallback(
     async  () => {
 
           
 
-        const workbook = await initializeWorkbook();
+        const workbook = await initializeWorkbook(options);
 
 
           await toExcel(workbook,options);
@@ -32,5 +32,5 @@ export function useReactToExcel(
     [options]
   );
 
-  return handlePrint;
+  return handleExcel;
 }
