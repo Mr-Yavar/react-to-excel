@@ -3,7 +3,7 @@ import React, {forwardRef} from 'react';
 // Define a type for the table data
 
 
-const SampleTable: React.FC = forwardRef( (props, ref) => {
+export const SampleTable: React.FC = forwardRef( (props, ref) => {
     return (
         <div ref={ref} className="table" id={"content"}>
 
