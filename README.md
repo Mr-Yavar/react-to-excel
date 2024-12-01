@@ -96,19 +96,6 @@ const SampleTable: React.FC = () => {
 }
 ```
 
-### Contributing
-Contributions are welcome! Please open an issue or submit a pull request for any improvements or bug fixes.
-
-### Based on: 
-+ [react-to-print](https://github.com/MatthewHerbst/react-to-print)
-
-### Powered by:
-+ [exceljs](https://github.com/exceljs/exceljs.git)
-
-### `useReactToExcel` Parameters
-
-The `useReactToExcel` hook accepts an options object with the following parameters:
-
 ### useReactToExcel Parameters
 
 The `useReactToExcel` hook accepts an options object with the following parameters:
@@ -120,3 +107,14 @@ The `useReactToExcel` hook accepts an options object with the following paramete
 | `sheetOptions` | `Array<SheetOption>` | An array of objects that define the content and options for each sheet in the Excel file. Each object can contain: |
 |     |     | *   `contentRef`: A reference to the React component or HTML element to be exported.<br>*   `htmlContent`: HTML content to be exported as a string.<br>*   `title`: The title of the sheet in the Excel file.<br>*   `isRTL`: A boolean indicating if the content is right-to-left (useful for languages like Persian or Arabic ..). |
 | `author` | `string` | The name of the author of the document. This can be included in the metadata of the Excel file. |
+
+
+
+### Contributing
+Contributions are welcome! Please open an issue or submit a pull request for any improvements or bug fixes.
+
+### Based on: 
++ [react-to-print](https://github.com/MatthewHerbst/react-to-print)
+
+### Powered by:
++ [exceljs](https://github.com/exceljs/exceljs.git)
