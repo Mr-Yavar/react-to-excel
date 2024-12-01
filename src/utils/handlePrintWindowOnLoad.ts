@@ -64,7 +64,6 @@ export function handlePrintWindowOnLoad(
 
   const {
     bodyClass,
-    fonts,
     ignoreGlobalStyles,
     pageStyle,
     nonce,

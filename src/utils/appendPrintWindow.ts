@@ -9,18 +9,20 @@ export function appendPrintWindow(
     data: HandlePrintWindowOnLoadData,
     options: useReactToExcelOptions,
 ) {
-    printWindow.onload = () => {
-        //console.log(111)
-        handlePrintWindowOnLoad(
-            printWindow,
-            markLoaded,
-            data,
-            options
-        );
-        //console.log(222)
+  
+      
+    
 
         
-    };
+    
 
     document.body.appendChild(printWindow);
+    
+
+    handlePrintWindowOnLoad(
+        printWindow,
+        markLoaded,
+        data,
+        options
+    );
 }

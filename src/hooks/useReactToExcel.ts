@@ -64,8 +64,7 @@ export function useReactToExcel(
          * resources have been marked (loaded or failed)
          */
         const markLoaded = (
-          resource: Element | Font | FontFace,
-          errorMessages?: unknown[]
+          resource: Element | Font | FontFace
         ) => {
           if (resourcesLoaded.includes(resource)) {
             return;
@@ -113,9 +112,10 @@ export function useReactToExcel(
       //console.log("===============");
     }
 
-    setTimeout(() => {
+    console.log(122);
+    
       saveWorkbook(workbook, options.documentTitle ?? window.document.title);
-    }, 500);
+   
   }, [options]);
   return handleExcel;
 }

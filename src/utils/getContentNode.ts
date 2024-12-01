@@ -1,7 +1,5 @@
 import { logMessages } from "./logMessage";
 import { ContentNode } from "../types/ContentNode";
-import { useReactToExcelHookContent } from "../types/UseReactToExcelHookContent";
-import { RefObject } from "react";
 
 interface GetContentNodesArgs {
   content?: string;
