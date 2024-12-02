@@ -29,11 +29,11 @@ export function toExcel(
     tables = content.querySelectorAll(`* > table`);
   }
 
-  //console.log(tables);
 
+  let RowNumber = 1; // Initialize RowNumber for each table
   for (let j = 0; j < tables.length; j++) {
     const table = tables[j];
-    TableReader(table as HTMLTableElement, sheet, workbook, rightHand);
+    RowNumber = TableReader(table as HTMLTableElement, sheet, workbook,RowNumber, rightHand);
   }
 
   
@@ -44,9 +44,10 @@ function TableReader(
   Table: HTMLTableElement | null,
   sheet: Excel.Worksheet,
   workbook: Excel.Workbook,
+  initialRowNumber:number,
   rightHand: boolean
-) {
-  if (Table == null) return;
+):number {
+  if (Table == null) return initialRowNumber;
 
   let tableEl: HTMLTableElement | null = Table;
 
@@ -57,7 +58,7 @@ function TableReader(
   const header: HTMLTableSectionElement | null = tableEl.querySelector(`thead`);
   const body: HTMLTableSectionElement | null = tableEl.querySelector(`tbody`);
 
-  let RowNumber = 1; // Initialize RowNumber for each table
+  let RowNumber = initialRowNumber; // Initialize RowNumber for each table
 
   if (header) {
     for (let rIndex = 0; rIndex < header.rows.length; rIndex++) {
@@ -75,7 +76,7 @@ function TableReader(
         const th = cells[cIndex];
         if (th.firstElementChild instanceof HTMLTableElement) {
           const TempRow = RowNumber;
-          TableReader(th.firstElementChild, sheet, workbook, rightHand);
+          TableReader(th.firstElementChild, sheet, workbook,RowNumber, rightHand);
           RowNumber = TempRow; // Restore RowNumber after processing child table
         } else {
           const temp = th.cloneNode(true) as HTMLElement;
@@ -183,7 +184,7 @@ function TableReader(
         const th = cells[cIndex];
         if (th.firstElementChild instanceof HTMLTableElement) {
           const TempRow = RowNumber;
-          TableReader(th.firstElementChild, sheet, workbook, rightHand);
+          TableReader(th.firstElementChild, sheet, workbook,RowNumber, rightHand);
           RowNumber = TempRow;
         } else {
           const temp = th.cloneNode(true) as HTMLElement;
@@ -261,4 +262,6 @@ function TableReader(
   if (hiddenParent) {
     hiddenParent.style.display = ""; // Reset display style
   }
+
+  return RowNumber;
 }
