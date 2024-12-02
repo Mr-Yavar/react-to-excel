@@ -5,4 +5,6 @@ export interface SheetOption {
     htmlContent?:string;
     title : string;
     isRTL:boolean;
+    reverse?:boolean;
+
 }

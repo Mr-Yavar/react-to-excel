@@ -10,12 +10,11 @@ const App: React.FC = () => {
     documentTitle: "Sample",
     sheetOptions: [
       {
-        htmlContent: renderToString(<SampleTable />, {
-          identifierPrefix: "212",
-        }),
+        htmlContent: renderToString(<SampleTable />),
         title: "Samewrthple",
         isRTL: false,
-      }
+        reverse: true,
+      },
     ],
   });
 

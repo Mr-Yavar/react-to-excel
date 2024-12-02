@@ -1,8 +1,8 @@
 {
   "name": "react-to-excel",
   "private": false,
-  "description": "A simple lib",
-  "version": "0.0.2-b",
+  "description": "a simple library to export React components and HTML tables to Excel files",
+  "version": "0.0.3-b1",
   "repository": {
     "type": "git",
     "url": "https://github.com/Mr-Yavar/react-to-excel.git"

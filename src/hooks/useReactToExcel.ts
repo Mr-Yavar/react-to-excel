@@ -14,7 +14,7 @@ import { HandlePrintWindowOnLoadData } from "../utils/handlePrintWindowOnLoad.ts
 import { appendPrintWindow } from "../utils/appendPrintWindow.ts";
 
 export function useReactToExcel(
-  options: useReactToExcelOptions
+  options: useReactToExcelOptions,
 ): useReactToExcelFn {
   const handleExcel = useCallback(async () => {
     const workbook = await initializeWorkbook(options);
@@ -22,7 +22,7 @@ export function useReactToExcel(
     for (let i = 0; i < options.sheetOptions.length; i++) {
       const sheetOption = options.sheetOptions[i];
       const sheetName = sheetOption?.title || `Sheet ${i + 1}`;
-
+      const reverseMode = sheetOption.reverse ?? false;
       if (sheetOption.htmlContent) {
         // Ensure we remove any pre-existing print windows before adding a new one
         removePrintIframe(options.preserveAfterPrint, true);
@@ -40,10 +40,10 @@ export function useReactToExcel(
         const clonedContentNode = contentNode.cloneNode(true);
 
         const globalLinkNodes = document.querySelectorAll(
-          "link[rel~='stylesheet'], link[as='style']"
+          "link[rel~='stylesheet'], link[as='style']",
         );
         const clonedImgNodes = (clonedContentNode as Element).querySelectorAll(
-          "img"
+          "img",
         );
         const clonedVideoNodes = (
           clonedContentNode as Element
@@ -63,9 +63,7 @@ export function useReactToExcel(
          * Keeps track of loaded resources, kicking off the actual print function once all
          * resources have been marked (loaded or failed)
          */
-        const markLoaded = (
-          resource: Element | Font | FontFace
-        ) => {
+        const markLoaded = (resource: Element | Font | FontFace) => {
           if (resourcesLoaded.includes(resource)) {
             return;
           }
@@ -76,7 +74,13 @@ export function useReactToExcel(
             resourcesLoaded.length + resourcesErrored.length;
 
           if (numResourcesManaged === numResourcesToLoad) {
-            toExcel(workbook, printWindow, sheetOption.isRTL, sheetName, false);
+            toExcel(
+              workbook,
+              printWindow,
+              sheetOption.isRTL,
+              sheetName,
+              reverseMode,
+            );
           }
         };
         const data: HandlePrintWindowOnLoadData = {
@@ -86,10 +90,16 @@ export function useReactToExcel(
           clonedVideoNodes,
           numResourcesToLoad,
           originalCanvasNodes: (contentNode as Element).querySelectorAll(
-            "canvas"
+            "canvas",
           ),
           toExcelFn: (printWindow: HTMLIFrameElement) =>
-            toExcel(workbook, printWindow, sheetOption.isRTL, sheetName, false),
+            toExcel(
+              workbook,
+              printWindow,
+              sheetOption.isRTL,
+              sheetName,
+              reverseMode,
+            ),
         };
 
         // Ensure we run `onBeforePrint` before appending the print window, which kicks off loading
@@ -106,16 +116,13 @@ export function useReactToExcel(
             sheetOption.contentRef.current as HTMLElement,
             sheetOption.isRTL,
             sheetName,
-            false
+            reverseMode,
           );
       }
       //console.log("===============");
     }
 
-    console.log(122);
-    
-      saveWorkbook(workbook, options.documentTitle ?? window.document.title);
-   
+    saveWorkbook(workbook, options.documentTitle ?? window.document.title);
   }, [options]);
   return handleExcel;
 }
