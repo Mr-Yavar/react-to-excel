@@ -105,7 +105,8 @@ The `useReactToExcel` hook accepts an options object with the following paramete
 | --- | --- | --- |
 | `documentTitle` | `string` | The title of the document to be generated. This will be the name of the Excel file when downloaded. |
 | `sheetOptions` | `Array<SheetOption>` | An array of objects that define the content and options for each sheet in the Excel file. Each object can contain: |
-|     |     | *   `contentRef`: A reference to the React component or HTML element to be exported.<br>*   `htmlContent`: HTML content to be exported as a string.<br>*   `title`: The title of the sheet in the Excel file.<br>*   `isRTL`: A boolean indicating if the content is right-to-left (useful for languages like Persian or Arabic ..).<br>* `reverse` : A boolean indicating if content should be written from right to left (mirror mode) | `pageStyle` | `string` | **`Note`:** only works when `htmlContent` is used.<br> you can use it to set the page style of the excel file.
+|     |     | *   `contentRef`: A reference to the React component or HTML element to be exported.<br>*   `htmlContent`: HTML content to be exported as a string.<br>*   `title`: The title of the sheet in the Excel file.<br>*   `isRTL`: A boolean indicating if the content is right-to-left (useful for languages like Persian or Arabic ..).<br>* `reverse` : A boolean indicating if content should be written from right to left (mirror mode) |
+`pageStyle` | `string` | **`Note`:** only works when `htmlContent` is used.<br> you can use it to set the page style of the excel file.
 | `author` | `string` | The name of the author of the document. This can be included in the metadata of the Excel file. | 
 
 
