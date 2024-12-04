@@ -7,28 +7,25 @@ export function borderStyle(
   );
   if (size == 0) return "";
 
-  if (
-    computedStyles.getPropertyValue(`border-${side}-style`).toLowerCase() ==
-    "solid"
-  ) {
+  let SideborderStyle = computedStyles
+    .getPropertyValue(`border-${side}-style`)
+    .toLowerCase();
+
+
+
+  if (SideborderStyle == "solid") {
     if (size > 0 && size <= 2) {
       return "thin";
     } else {
       return "medium";
     }
-  } else if (
-    computedStyles.getPropertyValue(`border-${side}-style`).toLowerCase() ==
-    "solid"
-  ) {
+  } else if (SideborderStyle == "dotted") {
     if (size > 0 && size <= 2) {
       return "dotted";
     } else {
       return "mediumdotted";
     }
-  } else if (
-    computedStyles.getPropertyValue(`border-${side}-style`).toLowerCase() ==
-    "dashed"
-  ) {
+  } else if (SideborderStyle == "dashed") {
     if (size > 0 && size <= 2) {
       return "Dashed";
     } else {
