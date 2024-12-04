@@ -32,14 +32,13 @@ export function toExcel(
   let RowNumber = 1; // Initialize RowNumber for each table
   for (let j = 0; j < tables.length; j++) {
     const table = tables[j];
-    RowNumber =
-      TableReader(
-        table as HTMLTableElement,
-        sheet,
-        workbook,
-        RowNumber,
-        rightHand,
-      ) + 1;
+    RowNumber = TableReader(
+      table as HTMLTableElement,
+      sheet,
+      workbook,
+      RowNumber,
+      rightHand,
+    );
   }
 }
 
@@ -50,7 +49,7 @@ function TableReader(
   initialRowNumber: number,
   rightHand: boolean,
 ): number {
-  if (Table == null) return initialRowNumber - 1;
+  if (Table == null) return initialRowNumber;
 
   let tableEl: HTMLTableElement | null = Table;
 
@@ -122,9 +121,7 @@ function TableReader(
             row.getCell(CellNumber).value = generateCellValue(temp);
           }
 
-          const style = getExcelStyle(th, rightHand);
-          style.font.name = "B Titr";
-          row.getCell(CellNumber).style = style;
+          row.getCell(CellNumber).style = getExcelStyle(th, rightHand);
 
           // Handle rowspan and colspan
           const colspan = th.colSpan ? Number(th.colSpan) : 1;
@@ -220,9 +217,7 @@ function TableReader(
             row.getCell(CellNumber).numFmt = identifyNumberFormat(
               th.innerText.trim(),
             );
-            row.getCell(CellNumber).style = {
-              font: { name: "Times New Roman" },
-            };
+            row.getCell(CellNumber).style = getExcelStyle(th, rightHand);
           }
 
           const colspan = th.colSpan ? Number(th.colSpan) : 1;
