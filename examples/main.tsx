@@ -8,6 +8,7 @@ const App: React.FC = () => {
   const componentRef = useRef(null);
   const handleExcelBtn = useReactToExcel({
     documentTitle: "Sample",
+    pageStyle:"*{background:red; border:2px dotted black;}",
     sheetOptions: [
       {
         htmlContent: renderToString(<SampleTable />),
