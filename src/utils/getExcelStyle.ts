@@ -12,9 +12,8 @@ export function getExcelStyle(tdElement: any, rightHand: boolean) {
 
   let fontName = computedStyles
     .getPropertyValue("font-family")
-    .replace('"', "")
-    .replace("'", "");
-
+    .replaceAll('"', "")
+    .replaceAll("'", "");
 
   // Extract relevant properties from computed styles
   style.font = {

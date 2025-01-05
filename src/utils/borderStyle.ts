@@ -3,15 +3,13 @@ export function borderStyle(
   side: any
 ): string {
   let size = Number(
-    computedStyles.getPropertyValue(`border-${side}-width`).replace("px", "")
+    computedStyles.getPropertyValue(`border-${side}-width`).replaceAll("px", "")
   );
   if (size == 0) return "";
 
   let SideborderStyle = computedStyles
     .getPropertyValue(`border-${side}-style`)
     .toLowerCase();
-
-
 
   if (SideborderStyle == "solid") {
     if (size > 0 && size <= 2) {

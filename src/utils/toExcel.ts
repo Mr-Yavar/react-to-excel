@@ -15,7 +15,7 @@ export function toExcel(
   content: HTMLIFrameElement | Element,
   isRTL: boolean,
   SheetName: string,
-  rightHand = false,
+  rightHand = false
 ) {
   const sheet = workbook.addWorksheet(SheetName);
   sheet.views = [{ rightToLeft: isRTL }];
@@ -37,7 +37,7 @@ export function toExcel(
       sheet,
       workbook,
       RowNumber,
-      rightHand,
+      rightHand
     );
   }
 }
@@ -47,7 +47,7 @@ function TableReader(
   sheet: Excel.Worksheet,
   workbook: Excel.Workbook,
   initialRowNumber: number,
-  rightHand: boolean,
+  rightHand: boolean
 ): number {
   if (Table == null) return initialRowNumber;
 
@@ -83,12 +83,12 @@ function TableReader(
             sheet,
             workbook,
             RowNumber,
-            rightHand,
+            rightHand
           );
           RowNumber = TempRow; // Restore RowNumber after processing child table
         } else {
           const temp = th.cloneNode(true) as HTMLElement;
-          temp.innerHTML = temp.innerHTML.replace("<br>", "\n");
+          temp.innerHTML = temp.innerHTML.replaceAll("<br>", "\n");
 
           // Find an empty cell to fill
           while (
@@ -115,7 +115,7 @@ function TableReader(
                   },
                   ext: { width: img.clientWidth, height: img.clientHeight },
                 });
-              },
+              }
             );
           } else {
             row.getCell(CellNumber).value = generateCellValue(temp);
@@ -132,13 +132,13 @@ function TableReader(
               RowNumber,
               CellNumber,
               RowNumber + rowspan - 1,
-              CellNumber + colspan - 1,
+              CellNumber + colspan - 1
             );
           }
 
           // Adjust row height
           const heightPerRow = convertPixelsToPoints(
-            Number(th.clientHeight) / (rowspan || 1),
+            Number(th.clientHeight) / (rowspan || 1)
           );
           for (
             let rnumber = RowNumber;
@@ -153,7 +153,7 @@ function TableReader(
 
           // Adjust column width
           const maxlength = Math.max(
-            ...temp.innerText.split("\n").map((str) => str.trim().length),
+            ...temp.innerText.split("\n").map((str) => str.trim().length)
           );
           const widthPerColumn = maxlength / (colspan || 1);
 
@@ -195,12 +195,12 @@ function TableReader(
             sheet,
             workbook,
             RowNumber,
-            rightHand,
+            rightHand
           );
           RowNumber = TempRow;
         } else {
           const temp = th.cloneNode(true) as HTMLElement;
-          temp.innerHTML = temp.innerHTML.replace("<br>", "\n");
+          temp.innerHTML = temp.innerHTML.replaceAll("<br>", "\n");
 
           while (
             row.getCell(CellNumber).isMerged ||
@@ -215,7 +215,7 @@ function TableReader(
           } else {
             row.getCell(CellNumber).value = Number(th.innerText);
             row.getCell(CellNumber).numFmt = identifyNumberFormat(
-              th.innerText.trim(),
+              th.innerText.trim()
             );
             row.getCell(CellNumber).style = getExcelStyle(th, rightHand);
           }
@@ -228,12 +228,12 @@ function TableReader(
               RowNumber,
               CellNumber,
               RowNumber + rowspan - 1,
-              CellNumber + colspan - 1,
+              CellNumber + colspan - 1
             );
           }
 
           const heightPerRow = convertPixelsToPoints(
-            Number(th.clientHeight) / (rowspan || 1),
+            Number(th.clientHeight) / (rowspan || 1)
           );
           for (
             let rnumber = RowNumber;
@@ -247,7 +247,7 @@ function TableReader(
           }
 
           const maxlength = Math.max(
-            ...temp.innerText.split("\n").map((str) => str.trim().length),
+            ...temp.innerText.split("\n").map((str) => str.trim().length)
           );
           const widthPerColumn = maxlength / (colspan || 1);
 
