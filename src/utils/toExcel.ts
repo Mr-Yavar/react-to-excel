@@ -1,5 +1,4 @@
-﻿import * as Excel from "exceljs";
-import { findParentWithDisplayNone } from "./findParentWithDisplayNone";
+﻿import { findParentWithDisplayNone } from "./findParentWithDisplayNone";
 import { getBase64FromImage } from "./getBase64FromImage";
 import { generateCellValue } from "./generateCellValue";
 import { getExcelStyle } from "./getExcelStyle";
@@ -11,7 +10,7 @@ import { identifyNumberFormat } from "./identifyNumberFormat";
 //=========
 
 export function toExcel(
-  workbook: Excel.Workbook,
+  workbook: any,
   content: HTMLIFrameElement | Element,
   isRTL: boolean,
   SheetName: string,
@@ -44,8 +43,8 @@ export function toExcel(
 
 function TableReader(
   Table: HTMLTableElement | null,
-  sheet: Excel.Worksheet,
-  workbook: Excel.Workbook,
+  sheet: any,
+  workbook: any,
   initialRowNumber: number,
   rightHand: boolean
 ): number {
