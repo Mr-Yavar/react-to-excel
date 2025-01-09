@@ -20,6 +20,12 @@ export const SampleTable: React.FC = forwardRef((props, ref) => {
               <th>Begin</th>
               <th>End</th>
             </tr>
+             <tr>
+              <td><img src="/photo.png"/></td>
+              <td>-</td>
+              <td>-</td>
+              <td>*</td>
+            </tr>
           </thead>
           <tbody>
             <tr>
@@ -53,6 +59,12 @@ export const SampleTable: React.FC = forwardRef((props, ref) => {
               <td>8:00 a.m</td>
               <td>12:00 p.m</td>
               <td>XLS Formatting Objects</td>
+            </tr>
+               <tr>
+              <td><img src="/photo.png"/></td>
+              <td>-</td>
+              <td>-</td>
+              <td>*</td>
             </tr>
           </tbody>
         </table>

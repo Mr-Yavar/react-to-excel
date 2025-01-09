@@ -1,5 +1,5 @@
 import React, { useRef } from "react";
-import ReactDOM from "react-dom";
+
 
 import { useReactToExcel } from "../src"; // Adjust the path as needed
 import SampleTable from "./tables/SampleTable";
@@ -11,7 +11,7 @@ const App: React.FC = () => {
     pageStyle:"*{background:red; border:2px dotted black;}",
     sheetOptions: [
       {
-        htmlContent: renderToString(<SampleTable />),
+        contentRef:componentRef,
         title: "Samewrthple",
         isRTL: false,
         reverse: true,

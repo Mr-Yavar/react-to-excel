@@ -1,9 +1,10 @@
 ﻿import { findParentWithDisplayNone } from "./findParentWithDisplayNone";
-import { getBase64FromImage } from "./getBase64FromImage";
+
 import { generateCellValue } from "./generateCellValue";
 import { getExcelStyle } from "./getExcelStyle";
 import { convertPixelsToPoints } from "./convertPixelToPoint";
 import { identifyNumberFormat } from "./identifyNumberFormat";
+import { AddImage } from "./AddImage";
 
 //=========
 //  V 0.1.0
@@ -88,7 +89,6 @@ function TableReader(
         } else {
           const temp = th.cloneNode(true) as HTMLElement;
           temp.innerHTML = temp.innerHTML.replaceAll("<br>", "\n");
-
           // Find an empty cell to fill
           while (
             row.getCell(CellNumber).isMerged ||
@@ -101,20 +101,8 @@ function TableReader(
           // Handle images
           if (th.querySelector("img")) {
             th.querySelectorAll("img").forEach(
-              (img: HTMLImageElement, imgIndex: number) => {
-                const imageId = workbook.addImage({
-                  base64: getBase64FromImage(img),
-                  extension: "jpeg",
-                });
-
-                sheet.addImage(imageId, {
-                  tl: {
-                    col: CellNumber + imgIndex - 1,
-                    row: RowNumber - 1,
-                  },
-                  ext: { width: img.clientWidth, height: img.clientHeight },
-                });
-              }
+              (img: HTMLImageElement, imgIndex: number) =>
+                AddImage(workbook, sheet, CellNumber, RowNumber, img, imgIndex)
             );
           } else {
             row.getCell(CellNumber).value = generateCellValue(temp);
@@ -207,7 +195,12 @@ function TableReader(
           ) {
             CellNumber++;
           }
-
+          if (th.querySelector("img")) {
+            th.querySelectorAll("img").forEach(
+              (img: HTMLImageElement, imgIndex: number) =>
+                AddImage(workbook, sheet, CellNumber, RowNumber, img, imgIndex)
+            );
+          }
           if (isNaN(Number(temp.innerText)) || th.innerText === "") {
             row.getCell(CellNumber).value = generateCellValue(temp);
             row.getCell(CellNumber).style = getExcelStyle(th, rightHand);
