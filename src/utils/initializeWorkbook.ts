@@ -1,8 +1,8 @@
+import { Workbook } from "exceljs";
 import { useReactToExcelOptions } from "../types/UseReactToExcelOptions";
 
 // Initializes the Excel workbook with metadata
-export async function initializeWorkbook(options: useReactToExcelOptions) {
-  const { Workbook } = await import("exceljs");
+export function initializeWorkbook(options: useReactToExcelOptions) {
   const workbook = new Workbook();
   workbook.creator = options.author ?? "-";
   workbook.lastModifiedBy = options.author ?? "-";
